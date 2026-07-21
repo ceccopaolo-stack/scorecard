@@ -121,6 +121,7 @@
         .btn-danger { background-color: #ef4444; }
         .btn-warning { background-color: var(--accent); color: #000; }
         .btn-success { background-color: #10b981; }
+        .btn-water { background-color: #0284c7; }
 
         .table-wrapper {
             overflow-x: auto;
@@ -141,6 +142,7 @@
             border: 1px solid var(--border);
             padding: 8px 6px;
             text-align: center;
+            min-width: 45px;
         }
 
         th {
@@ -149,6 +151,19 @@
             position: sticky;
             top: 0;
             z-index: 10;
+        }
+
+        th.sticky-col, td.sticky-col {
+            position: sticky;
+            left: 0;
+            background-color: #f8fafc;
+            z-index: 5;
+            text-align: left;
+            min-width: 100px;
+        }
+        th.sticky-col {
+            z-index: 15;
+            background-color: #e0f2fe;
         }
 
         td.clickable {
@@ -182,19 +197,54 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            text-align: center;
             box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
-            max-height: 90vh;
+            max-height: 95vh;
             overflow-y: auto;
         }
 
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-            color: var(--primary);
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
         }
 
-        .nav-buttons {
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text);
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hole-nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 6px 10px;
+            border-radius: 8px;
+        }
+
+        .strokes-display-box {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            background: #fff;
+        }
+
+        .strokes-number {
+            font-size: 52px;
+            font-weight: bold;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .grid-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
@@ -256,13 +306,14 @@
             <table id="score-table"></table>
         </div>
 
-        <div class="nav-buttons">
-            <button class="btn-secondary" onclick="prevHole()">← Prec.</button>
-            <button onclick="nextHole()">Succ. →</button>
+        <div style="display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 6px;">
+            <button class="btn-secondary" style="padding: 14px 4px; font-size: 13px;" onclick="prevHoleMain()">← Indietro</button>
+            <button class="btn-success" style="padding: 14px 4px; font-size: 16px;" onclick="handlePlayButton()">GIOCA 🏌️‍♂️</button>
+            <button style="padding: 14px 4px; font-size: 13px;" onclick="nextHoleMain()">Avanti →</button>
         </div>
 
         <button class="btn-warning" onclick="openFullScorecardModal()">Visualizza Tabellone 18 Buche 📋</button>
-        <button class="btn-success" onclick="saveGameToHistory()">💾 Salva Partita in Memoria</button>
+        <button class="btn-success" style="background-color: #0284c7;" onclick="saveGameToHistory()">💾 Salva Partita in Memoria</button>
         <button class="btn-danger" onclick="confirmExit()" style="font-size: 13px; padding: 8px;">Torna al Menu</button>
     </div>
 
@@ -274,36 +325,88 @@
     </div>
 </div>
 
-<!-- POP-UP TURNO A TUTTO SCHERMO -->
-<div id="turn-modal" class="modal">
-    <div class="modal-card">
-        <div style="font-size: 36px;">⛳</div>
-        <div class="modal-title" id="turn-modal-title">Tocca a Paola!</div>
-        <p id="turn-modal-desc" style="font-size: 14px; color: #64748b;">È il primo a tirare in questa buca.</p>
-        <button onclick="closeTurnModal()">OK, Inizia Buca 👍</button>
+<!-- MODALE INSERIMENTO TIRI -->
+<div id="score-modal" class="modal" onclick="handleOutsideModalClick(event, 'score-modal')" style="z-index: 150;">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title" id="modal-player-name">PAOLO</div>
+            <div style="display: flex; gap: 4px;">
+                <button class="btn-secondary" style="padding: 6px 8px; font-size: 11px; width: auto;" onclick="openFullScorecardModal()">📋 TAB.</button>
+                <button class="btn-secondary" style="padding: 6px 8px; font-size: 11px; width: auto; background-color: var(--accent); color: #000;" onclick="openPlayerSelectorModal()">🔄 CAMBIA</button>
+            </div>
+        </div>
+
+        <div class="hole-nav-bar">
+            <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px; width: auto;" onclick="modalPrevHole()">◀</button>
+            <span id="modal-hole-indicator" style="font-weight: bold; font-size: 14px; color: var(--text);">BUCA 1 (PAR 2)</span>
+            <button class="btn-secondary" style="padding: 4px 8px; font-size: 12px; width: auto;" onclick="modalNextHole()">▶</button>
+        </div>
+
+        <div class="strokes-display-box">
+            <div id="modal-current-strokes" class="strokes-number">4</div>
+        </div>
+        
+        <div class="grid-buttons">
+            <button onclick="addStroke(1)">+1 COLPO</button>
+            <button class="btn-secondary" onclick="addStroke(-1)">-1 COLPO</button>
+            
+            <button class="btn-warning" onclick="triggerPenalty(1)">PALLA FUORI (+1 PEN.)</button>
+            <button class="btn-water" onclick="triggerPenalty(2)">PALLA ACQUA (+2 PEN.)</button>
+            
+            <button class="btn-danger" style="background-color: #b91c1c;" onclick="resetHoleScore()">🗑️ CANC.</button>
+            <button class="btn-success" onclick="handleNextTurnClick()">PROX TURNO ➔</button>
+        </div>
     </div>
 </div>
 
-<!-- MODALE INSERIMENTO TIRI -->
-<div id="score-modal" class="modal" style="z-index: 150;">
-    <div class="modal-card">
-        <div class="modal-title" id="modal-player-name">Giocatore</div>
-        <p style="font-size: 13px; color: #64748b;" id="modal-hole-indicator">Buca corrente</p>
-        <div id="modal-current-strokes" style="font-size: 42px; font-weight: bold; color: var(--primary);">0</div>
-        
-        <div style="display: flex; flex-direction: column; gap: 6px;">
-            <button onclick="addStroke(1)">+1 Un Colpo</button>
-            <button class="btn-warning" onclick="addStroke(1)">Palla Fuori Percorso (+1 pen.)</button>
-            <button class="btn-danger" onclick="addStroke(2)">Palla in Acqua (+2 pen.)</button>
-        </div>
-        <button class="btn-secondary" onclick="closeScoreModal()" style="margin-top: 4px;">Fatto / Chiudi</button>
+<!-- POP-UP GRAFICO LIMITE RAGGIUNTO (7 D'UFFICIO) -->
+<div id="limit-modal" class="modal" onclick="handleOutsideModalClick(event, 'limit-modal')" style="z-index: 300;">
+    <div class="modal-card" onclick="event.stopPropagation()" style="text-align: center; gap: 16px; padding: 26px 20px;">
+        <div style="font-size: 42px;">⛳</div>
+        <div class="modal-title" style="color: var(--primary);">Limite Tiri Raggiunto</div>
+        <p style="font-size: 15px; color: var(--text); line-height: 1.4;">
+            Hai raggiunto il limite massimo di sei tiri e non hai fatto buca. Andrà meglio la prossima, segna 7.
+        </p>
+        <button onclick="closeLimitModal()" style="background-color: var(--primary);">OK 👍</button>
+    </div>
+</div>
+
+<!-- POP-UP REGOLE PENALITÀ -->
+<div id="penalty-rule-modal" class="modal" onclick="handleOutsideModalClick(event, 'penalty-rule-modal')" style="z-index: 250;">
+    <div class="modal-card" onclick="event.stopPropagation()" style="text-align: center; gap: 16px; padding: 24px 20px;">
+        <div style="font-size: 42px;">⚠️</div>
+        <div class="modal-title" style="color: var(--primary);">Regola Penalità</div>
+        <p style="font-size: 15px; color: var(--text); line-height: 1.4;" id="penalty-rule-text">
+            Riposiziona la palla dal punto in cui è uscita a 10 cm dal muretto e continua a giocare.
+        </p>
+        <button onclick="confirmPenalty()" style="background-color: var(--primary);">OK, Capito 👍</button>
+    </div>
+</div>
+
+<!-- POP-UP DI TRANSIZIONE TURNO / CAMBIO BUCA -->
+<div id="transition-modal" class="modal" onclick="handleOutsideModalClick(event, 'transition-modal')" style="z-index: 180;">
+    <div class="modal-card" onclick="event.stopPropagation()" style="text-align: center; gap: 14px; padding: 30px 20px;">
+        <div style="font-size: 40px;" id="transition-icon">⛳</div>
+        <div class="modal-title" id="transition-title" style="color: var(--primary); font-size: 22px;">ORA TOCCA A MARCO!</div>
+        <div id="transition-hole-title" style="font-size: 20px; font-weight: bold; color: #10b981; text-transform: uppercase;">SULLA BUCA 5</div>
+        <p id="transition-desc" style="font-size: 13px; color: #64748b; margin-top: 4px;">Passa il telefono al giocatore per registrare il suo turno.</p>
+        <button onclick="closeTransitionModal()" style="margin-top: 6px;">OK, Procedi 👍</button>
+    </div>
+</div>
+
+<!-- MODALE SELEZIONE RAPIDA GIOCATORE -->
+<div id="player-selector-modal" class="modal" onclick="handleOutsideModalClick(event, 'player-selector-modal')" style="z-index: 200;">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-title" style="font-size: 18px; color: var(--primary);">Seleziona Giocatore</div>
+        <div id="player-buttons-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        <button class="btn-secondary" onclick="closePlayerSelectorModal()">Annulla</button>
     </div>
 </div>
 
 <!-- MODALE TABELLONE COMPLETO 18 BUCHE -->
-<div id="full-scorecard-modal" class="modal" style="z-index: 100;">
-    <div class="modal-card" style="max-width: 95vw; width: 100%;">
-        <div class="modal-title">Tabellone Completo (18 Buche)</div>
+<div id="full-scorecard-modal" class="modal" onclick="handleOutsideModalClick(event, 'full-scorecard-modal')" style="z-index: 220;">
+    <div class="modal-card" onclick="event.stopPropagation()" style="max-width: 95vw; width: 100%;">
+        <div class="modal-title" style="font-size: 18px; color: var(--primary);">Tabellone Completo (18 Buche)</div>
         <p style="font-size: 12px; color: #64748b;">Tocca qualsiasi casella di un punteggio per modificarlo direttamente.</p>
         
         <div style="overflow-x: auto; max-height: 60vh; border: 1px solid var(--border); border-radius: 8px;">
@@ -329,16 +432,18 @@
         wasFullScorecardOpen: false
     };
 
+    let pendingNextAction = null;
+    let pendingPenaltyVal = 0;
+
     function generateNameInputs() {
         const num = parseInt(document.getElementById('num-players').value);
         const container = document.getElementById('names-container');
         container.innerHTML = '';
-        const defaultNames = ['Paola', 'Marco', 'Luca', 'Sara', 'Andrea', 'Giulia'];
         for (let i = 0; i < num; i++) {
             container.innerHTML += `
                 <div style="margin-bottom: 6px;">
                     <label>Giocatore ${i + 1}</label>
-                    <input type="text" id="player-name-${i}" value="${defaultNames[i]}">
+                    <input type="text" id="player-name-${i}" placeholder="Inserisci nome..." value="">
                 </div>
             `;
         }
@@ -364,7 +469,8 @@
         const num = parseInt(document.getElementById('num-players').value);
         let players = [];
         for (let i = 0; i < num; i++) {
-            const name = document.getElementById(`player-name-${i}`).value.trim() || `Gioc. ${i + 1}`;
+            const inputVal = document.getElementById(`player-name-${i}`).value.trim();
+            const name = inputVal !== '' ? inputVal : `Gioc. ${i + 1}`;
             players.push({
                 id: i,
                 name: name,
@@ -384,7 +490,8 @@
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('game-screen').classList.remove('hidden');
         updateGameView();
-        showTurnModal();
+        
+        promptNextTurnFlow();
     }
 
     function saveActiveGame() {
@@ -392,21 +499,15 @@
     }
 
     function getSortedPlayersForCurrentHole() {
-        return [...gameState.players].sort((a, b) => {
-            let scoreA = a.scores[gameState.currentHole];
-            let scoreB = b.scores[gameState.currentHole];
+        return [...gameState.players].sort((a, b) => a.id - b.id);
+    }
 
-            // 1. Chi ha 0 tiri (ancora non ha tirato in questa buca) ha la massima priorità
-            if (scoreA === 0 && scoreB !== 0) return -1;
-            if (scoreB === 0 && scoreA !== 0) return 1;
-
-            // 2. Se entrambi hanno già tirato (o entrambi non hanno tirato), ordina per punteggio totale cumulato finora
-            let totalA = a.scores.slice(0, gameState.currentHole).reduce((acc, val) => acc + val, 0) + (scoreA > 0 ? scoreA : 0);
-            let totalB = b.scores.slice(0, gameState.currentHole).reduce((acc, val) => acc + val, 0) + (scoreB > 0 ? scoreB : 0);
-
-            if (totalA !== totalB) return totalA - totalB;
-            return a.id - b.id;
-        });
+    function findFirstIncompleteHole() {
+        for (let h = 0; h < 18; h++) {
+            let incomplete = gameState.players.some(p => p.scores[h] === 0);
+            if (incomplete) return h;
+        }
+        return 17;
     }
 
     function updateGameView() {
@@ -414,37 +515,73 @@
         document.getElementById('header-hole-info').innerText = `Buca ${gameState.currentHole + 1} / 18`;
         document.getElementById('header-par-info').innerText = `Par: ${par}`;
 
-        let sortedPlayers = getSortedPlayersForCurrentHole();
+        let players = getSortedPlayersForCurrentHole();
 
-        let tableHTML = `<tr><th>Ordine</th><th>Giocatore</th><th>Buca ${gameState.currentHole + 1}</th><th>Tot.</th></tr>`;
-        
-        sortedPlayers.forEach((p, index) => {
-            let currentScore = p.scores[gameState.currentHole];
+        let endH = gameState.currentHole;
+        let startH = Math.max(0, endH - 3);
+
+        let tableHTML = `<tr><th class="sticky-col">Giocatore</th>`;
+        for (let h = startH; h <= endH; h++) {
+            tableHTML += `<th>Buca ${h + 1}</th>`;
+        }
+        tableHTML += `<th>Tot.</th></tr>`;
+
+        players.forEach(p => {
             let runningTotal = p.scores.reduce((acc, val) => acc + val, 0);
-            let turnText = index === 0 ? "1° (Tocca a lui)" : `${index + 1}°`;
 
-            tableHTML += `
-                <tr>
-                    <td style="font-weight: bold; color: ${index === 0 ? '#0284c7' : '#64748b'}">${turnText}</td>
-                    <td style="font-weight: bold; text-align: left;">${p.name}</td>
-                    <td class="clickable" onclick="openScoreModal(${p.id}, ${gameState.currentHole})">${currentScore === 0 ? '-' : currentScore}</td>
-                    <td style="font-weight: bold;">${runningTotal}</td>
-                </tr>
-            `;
+            tableHTML += `<tr><td class="sticky-col" style="font-weight: bold;">${p.name}</td>`;
+            for (let h = startH; h <= endH; h++) {
+                let currentScore = p.scores[h];
+
+                tableHTML += `
+                    <td class="clickable" onclick="openScoreModal(${p.id}, ${h})" style="background: #fef08a;">
+                        ${currentScore === 0 ? '-' : currentScore}
+                    </td>
+                `;
+            }
+            tableHTML += `<td style="font-weight: bold; background: #f8fafc;">${runningTotal}</td></tr>`;
         });
+
         document.getElementById('score-table').innerHTML = tableHTML;
     }
 
-    function showTurnModal() {
-        let sorted = getSortedPlayersForCurrentHole();
-        const firstPlayer = sorted[0].name;
-        document.getElementById('turn-modal-title').innerText = `Tocca a ${firstPlayer}!`;
-        document.getElementById('turn-modal-desc').innerText = `Inizia la Buca ${gameState.currentHole + 1}. È il turno di chi deve ancora completare la buca.`;
-        document.getElementById('turn-modal').style.display = 'flex';
+    function handlePlayButton() {
+        let targetHole = findFirstIncompleteHole();
+        gameState.currentHole = targetHole;
+        saveActiveGame();
+        updateGameView();
+        promptNextTurnFlow();
     }
 
-    function closeTurnModal() {
-        document.getElementById('turn-modal').style.display = 'none';
+    function promptNextTurnFlow() {
+        let sorted = gameState.players;
+        let nextPlayer = sorted.find(p => p.scores[gameState.currentHole] === 0);
+        
+        if (nextPlayer) {
+            showTransitionModal(
+                "🏌️‍♂️",
+                `ORA TOCCA A ${nextPlayer.name.toUpperCase()}!`,
+                `SULLA BUCA ${gameState.currentHole + 1}`,
+                `Passa il telefono a ${nextPlayer.name} per registrare il suo turno.`,
+                () => openScoreModal(nextPlayer.id, gameState.currentHole)
+            );
+        } else {
+            if (gameState.currentHole < 17) {
+                gameState.currentHole++;
+                saveActiveGame();
+                updateGameView();
+                
+                showTransitionModal(
+                    "⛳",
+                    `TUTTI HANNO COMPLETATO LA BUCA!`,
+                    `SI PASSA ALLA BUCA ${gameState.currentHole + 1}`,
+                    `Passate il telefono, ora giocate la buca numero ${gameState.currentHole + 1}.`,
+                    () => promptNextTurnFlow()
+                );
+            } else {
+                alert("Partita completata! Clicca su 'Salva Partita in Memoria' per archiviare lo score.");
+            }
+        }
     }
 
     function openScoreModal(playerId, holeIndex) {
@@ -457,53 +594,144 @@
 
         gameState.activeModalPlayerId = playerId;
         gameState.activeModalHole = holeIndex;
-        const player = gameState.players.find(p => p.id === playerId);
-        document.getElementById('modal-player-name').innerText = player.name;
-        document.getElementById('modal-hole-indicator').innerText = `Modifica Buca ${holeIndex + 1}`;
-        document.getElementById('modal-current-strokes').innerText = player.scores[holeIndex];
+        refreshScoreModalUI();
         document.getElementById('score-modal').style.display = 'flex';
     }
 
-    function closeScoreModal() {
-        document.getElementById('score-modal').style.display = 'none';
-        updateGameView();
+    function refreshScoreModalUI() {
+        const player = gameState.players.find(p => p.id === gameState.activeModalPlayerId);
+        const holeIdx = gameState.activeModalHole;
+        const par = PAR_DATA[gameState.course][holeIdx];
         
-        if (gameState.wasFullScorecardOpen) {
-            openFullScorecardModal();
-            gameState.wasFullScorecardOpen = false;
+        document.getElementById('modal-player-name').innerText = player.name.toUpperCase();
+        document.getElementById('modal-hole-indicator').innerText = `BUCA ${holeIdx + 1} (PAR ${par})`;
+        
+        let strokes = player.scores[holeIdx];
+        document.getElementById('modal-current-strokes').innerText = strokes === 0 ? '-' : strokes;
+    }
+
+    function modalNextHole() {
+        if (gameState.activeModalHole < 17) {
+            gameState.activeModalHole++;
+            refreshScoreModalUI();
         }
     }
 
-    function addStroke(strokesToAdd) {
+    function modalPrevHole() {
+        if (gameState.activeModalHole > 0) {
+            gameState.activeModalHole--;
+            refreshScoreModalUI();
+        }
+    }
+
+    function triggerPenalty(val) {
+        pendingPenaltyVal = val;
+        document.getElementById('penalty-rule-modal').style.display = 'flex';
+    }
+
+    function confirmPenalty() {
+        document.getElementById('penalty-rule-modal').style.display = 'none';
+        addStroke(pendingPenaltyVal);
+    }
+
+    function handleNextTurnClick() {
+        document.getElementById('score-modal').style.display = 'none';
+        updateGameView();
+        saveActiveGame();
+
+        if (gameState.wasFullScorecardOpen) {
+            openFullScorecardModal();
+            gameState.wasFullScorecardOpen = false;
+            return;
+        }
+
+        promptNextTurnFlow();
+    }
+
+    function showTransitionModal(icon, title, holeSubtitle, desc, callback) {
+        document.getElementById('transition-icon').innerText = icon;
+        document.getElementById('transition-title').innerText = title;
+        document.getElementById('transition-hole-title').innerText = holeSubtitle;
+        document.getElementById('transition-desc').innerText = desc;
+        pendingNextAction = callback;
+        document.getElementById('transition-modal').style.display = 'flex';
+    }
+
+    function closeTransitionModal() {
+        document.getElementById('transition-modal').style.display = 'none';
+        if (pendingNextAction) {
+            let cb = pendingNextAction;
+            pendingNextAction = null;
+            cb();
+        }
+    }
+
+    function openPlayerSelectorModal() {
+        const container = document.getElementById('player-buttons-container');
+        container.innerHTML = '';
+        gameState.players.forEach(p => {
+            container.innerHTML += `<button onclick="switchModalPlayer(${p.id})">${p.name}</button>`;
+        });
+        document.getElementById('player-selector-modal').style.display = 'flex';
+    }
+
+    function closePlayerSelectorModal() {
+        document.getElementById('player-selector-modal').style.display = 'none';
+    }
+
+    function switchModalPlayer(playerId) {
+        gameState.activeModalPlayerId = playerId;
+        closePlayerSelectorModal();
+        refreshScoreModalUI();
+    }
+
+    function addStroke(val) {
         let player = gameState.players.find(p => p.id === gameState.activeModalPlayerId);
         let holeIdx = gameState.activeModalHole;
         let current = player.scores[holeIdx];
 
-        if (current >= 6) {
-            alert("Hai già raggiunto il limite di tiri per questa buca (7 d'ufficio).");
-            player.scores[holeIdx] = 7;
-            closeScoreModal();
+        if (val === -1) {
+            player.scores[holeIdx] = Math.max(0, current - 1);
+            refreshScoreModalUI();
             saveActiveGame();
-            return;
-        }
-
-        let newTotal = current + strokesToAdd;
-        if (newTotal > 6) {
-            player.scores[holeIdx] = 7;
-            alert("Limite di 6 tiri superato: assegnato 7 d'ufficio.");
-            closeScoreModal();
         } else {
-            player.scores[holeIdx] = newTotal;
-            document.getElementById('modal-current-strokes').innerText = player.scores[holeIdx];
-            if (player.scores[holeIdx] >= 7) {
-                closeScoreModal();
+            if (current >= 6) {
+                player.scores[holeIdx] = 7;
+                refreshScoreModalUI();
+                saveActiveGame();
+                document.getElementById('limit-modal').style.display = 'flex';
+                return;
+            }
+
+            let newTotal = current + val;
+            if (newTotal > 6) {
+                player.scores[holeIdx] = 7;
+                refreshScoreModalUI();
+                saveActiveGame();
+                document.getElementById('limit-modal').style.display = 'flex';
+                return;
+            } else {
+                player.scores[holeIdx] = newTotal;
             }
         }
+        refreshScoreModalUI();
+        saveActiveGame();
+    }
+
+    function closeLimitModal() {
+        document.getElementById('limit-modal').style.display = 'none';
+    }
+
+    function resetHoleScore() {
+        let player = gameState.players.find(p => p.id === gameState.activeModalPlayerId);
+        let holeIdx = gameState.activeModalHole;
+        player.scores[holeIdx] = 0;
+        refreshScoreModalUI();
         saveActiveGame();
     }
 
     function openFullScorecardModal() {
-        let tableHTML = `<tr><th>Giocatore</th>`;
+        let tableHTML = `<tr><th class="sticky-col">Giocatore</th>`;
         for (let i = 1; i <= 18; i++) {
             tableHTML += `<th>${i}</th>`;
         }
@@ -511,7 +739,7 @@
 
         gameState.players.forEach(p => {
             let total = p.scores.reduce((a, b) => a + b, 0);
-            tableHTML += `<tr><td style="font-weight:bold; text-align:left; background:#f8fafc; position:sticky; left:0; z-index:5;">${p.name}</td>`;
+            tableHTML += `<tr><td class="sticky-col" style="font-weight:bold;">${p.name}</td>`;
             for (let h = 0; h < 18; h++) {
                 let s = p.scores[h];
                 tableHTML += `<td class="clickable" onclick="openScoreModal(${p.id}, ${h})">${s === 0 ? '-' : s}</td>`;
@@ -525,20 +753,26 @@
 
     function closeFullScorecardModal() {
         document.getElementById('full-scorecard-modal').style.display = 'none';
+        updateGameView();
     }
 
-    function nextHole() {
+    function handleOutsideModalClick(event, modalId) {
+        if (event.target.id === modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            updateGameView();
+            saveActiveGame();
+        }
+    }
+
+    function nextHoleMain() {
         if (gameState.currentHole < 17) {
             gameState.currentHole++;
             saveActiveGame();
             updateGameView();
-            showTurnModal();
-        } else {
-            alert("Hai completato tutte le 18 buche! Clicca su 'Salva Partita in Memoria' per archiviare lo score definitivo.");
         }
     }
 
-    function prevHole() {
+    function prevHoleMain() {
         if (gameState.currentHole > 0) {
             gameState.currentHole--;
             saveActiveGame();
@@ -552,6 +786,7 @@
         
         let gameRecord = {
             date: dateStr,
+            courseCode: gameState.course,
             course: gameState.course === 'arca' ? 'Arca Perduta (Par 41)' : 'Ultima Crociata (Par 43)',
             players: JSON.parse(JSON.stringify(gameState.players))
         };
@@ -575,6 +810,30 @@
         document.getElementById('setup-screen').classList.remove('hidden');
     }
 
+    function resumeGameFromHistory(index) {
+        let history = JSON.parse(localStorage.getItem('indiana_history') || '[]');
+        let record = history[index];
+        
+        if (record) {
+            gameState = {
+                players: JSON.parse(JSON.stringify(record.players)),
+                course: record.courseCode || 'arca',
+                currentHole: 0,
+                activeModalPlayerId: null,
+                activeModalHole: null,
+                wasFullScorecardOpen: false
+            };
+            
+            gameState.currentHole = findFirstIncompleteHole();
+
+            saveActiveGame();
+            document.getElementById('history-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            updateGameView();
+            promptNextTurnFlow();
+        }
+    }
+
     function showHistoryScreen() {
         const historyList = document.getElementById('history-list');
         let history = JSON.parse(localStorage.getItem('indiana_history') || '[]');
@@ -583,8 +842,8 @@
             historyList.innerHTML = '<p style="text-align:center; color: #64748b; margin-top:20px;">Nessuna partita salvata nello storico.</p>';
         } else {
             let html = '';
-            history.forEach(game => {
-                let tableHTML = `<tr><th>Giocatore</th>`;
+            history.forEach((game, index) => {
+                let tableHTML = `<tr><th class="sticky-col">Giocatore</th>`;
                 for (let i = 1; i <= 18; i++) {
                     tableHTML += `<th>${i}</th>`;
                 }
@@ -592,7 +851,7 @@
 
                 game.players.forEach(p => {
                     let total = p.scores.reduce((a, b) => a + b, 0);
-                    tableHTML += `<tr><td style="font-weight:bold; text-align:left; background:#f8fafc; position:sticky; left:0; z-index:5;">${p.name}</td>`;
+                    tableHTML += `<tr><td class="sticky-col" style="font-weight:bold;">${p.name}</td>`;
                     for (let h = 0; h < 18; h++) {
                         let s = p.scores[h];
                         tableHTML += `<td>${s === 0 ? '-' : s}</td>`;
@@ -602,8 +861,11 @@
 
                 html += `
                     <div class="history-card-item">
-                        <div style="margin-bottom: 6px;">
-                            <strong>${game.course}</strong> — <span style="color: #64748b;">${game.date}</span>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div>
+                                <strong>${game.course}</strong> — <span style="color: #64748b;">${game.date}</span>
+                            </div>
+                            <button class="btn-success" style="padding: 4px 8px; font-size: 11px; width: auto;" onclick="resumeGameFromHistory(${index})">Riprendi 🔄</button>
                         </div>
                         <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
                             <table>${tableHTML}</table>
