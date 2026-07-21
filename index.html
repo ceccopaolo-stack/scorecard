@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Indiana Golf Riccione</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --accent: #f59e0b;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            min-height: 94vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 12px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 20px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .screen {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .card-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        option.bg-arca {
+            background-color: #fef08a;
+            color: #854d0e;
+            font-weight: bold;
+        }
+
+        option.bg-crociata {
+            background-color: #bbf7d0;
+            color: #166534;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.1);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary { background-color: #64748b; }
+        .btn-danger { background-color: #ef4444; }
+        .btn-warning { background-color: var(--accent); color: #000; }
+        .btn-success { background-color: #10b981; }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin: 2px 0;
+            max-height: 50vh;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        th, td {
+            border: 1px solid var(--border);
+            padding: 8px 6px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #e0f2fe;
+            color: var(--primary-dark);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td.clickable {
+            background-color: #fef08a;
+            font-weight: bold;
+            font-size: 14px;
+            color: #854d0e;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .history-card-item {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 12px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h1>Indiana Golf</h1>
+
+    <!-- SCHERMATA SETUP -->
+    <div id="setup-screen" class="screen">
+        <div class="card-box">
+            <h2>Nuova Partita</h2>
+            <div style="margin-top: 8px;" class="form-group">
+                <label for="num-players">Numero Giocatori (max 6):</label>
+                <select id="num-players" onchange="generateNameInputs()">
+                    <option value="1">1 Giocatore</option>
+                    <option value="2" selected>2 Giocatori</option>
+                    <option value="3">3 Giocatori</option>
+                    <option value="4">4 Giocatori</option>
+                    <option value="5">5 Giocatori</option>
+                    <option value="6">6 Giocatori</option>
+                </select>
+            </div>
+            <div id="names-container" style="margin-top: 8px;"></div>
+            <div style="margin-top: 8px;" class="form-group">
+                <label for="course-select">Percorso:</label>
+                <select id="course-select">
+                    <option value="arca" class="bg-arca" selected>Arca Perduta (Par 41)</option>
+                    <option value="crociata" class="bg-crociata">Ultima Crociata (Par 43)</option>
+                </select>
+            </div>
+        </div>
+        
+        <button onclick="startNewGame()" style="margin-top: auto;">Inizia Partita 🚀</button>
+        <button class="btn-secondary" onclick="showHistoryScreen()">Storico Partite Salvate 📂</button>
+    </div>
+
+    <!-- SCHERMATA DI GIOCO -->
+    <div id="game-screen" class="screen hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: #e0f2fe; padding: 8px 12px; border-radius: 8px;">
+            <span id="header-hole-info" style="font-weight: bold; color: var(--primary-dark);">Buca 1 / 18</span>
+            <span id="header-par-info" style="font-weight: bold; background: white; padding: 2px 8px; border-radius: 4px;">Par: 2</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="score-table"></table>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn-secondary" onclick="prevHole()">← Prec.</button>
+            <button onclick="nextHole()">Succ. →</button>
+        </div>
+
+        <button class="btn-warning" onclick="openFullScorecardModal()">Visualizza Tabellone 18 Buche 📋</button>
+        <button class="btn-success" onclick="saveGameToHistory()">💾 Salva Partita in Memoria</button>
+        <button class="btn-danger" onclick="confirmExit()" style="font-size: 13px; padding: 8px;">Torna al Menu</button>
+    </div>
+
+    <!-- SCHERMATA STORICO -->
+    <div id="history-screen" class="screen hidden">
+        <h3>Storico Partite Salvate</h3>
+        <div id="history-list" style="overflow-y: auto; max-height: 65vh; flex: 1;"></div>
+        <button class="btn-secondary" onclick="backToSetup()">Indietro</button>
+    </div>
+</div>
+
+<!-- POP-UP TURNO A TUTTO SCHERMO -->
+<div id="turn-modal" class="modal">
+    <div class="modal-card">
+        <div style="font-size: 36px;">⛳</div>
+        <div class="modal-title" id="turn-modal-title">Tocca a Paola!</div>
+        <p id="turn-modal-desc" style="font-size: 14px; color: #64748b;">È il primo a tirare in questa buca.</p>
+        <button onclick="closeTurnModal()">OK, Inizia Buca 👍</button>
+    </div>
+</div>
+
+<!-- MODALE INSERIMENTO TIRI -->
+<div id="score-modal" class="modal" style="z-index: 150;">
+    <div class="modal-card">
+        <div class="modal-title" id="modal-player-name">Giocatore</div>
+        <p style="font-size: 13px; color: #64748b;" id="modal-hole-indicator">Buca corrente</p>
+        <div id="modal-current-strokes" style="font-size: 42px; font-weight: bold; color: var(--primary);">0</div>
+        
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button onclick="addStroke(1)">+1 Un Colpo</button>
+            <button class="btn-warning" onclick="addStroke(1)">Palla Fuori Percorso (+1 pen.)</button>
+            <button class="btn-danger" onclick="addStroke(2)">Palla in Acqua (+2 pen.)</button>
+        </div>
+        <button class="btn-secondary" onclick="closeScoreModal()" style="margin-top: 4px;">Fatto / Chiudi</button>
+    </div>
+</div>
+
+<!-- MODALE TABELLONE COMPLETO 18 BUCHE -->
+<div id="full-scorecard-modal" class="modal" style="z-index: 100;">
+    <div class="modal-card" style="max-width: 95vw; width: 100%;">
+        <div class="modal-title">Tabellone Completo (18 Buche)</div>
+        <p style="font-size: 12px; color: #64748b;">Tocca qualsiasi casella di un punteggio per modificarlo direttamente.</p>
+        
+        <div style="overflow-x: auto; max-height: 60vh; border: 1px solid var(--border); border-radius: 8px;">
+            <table id="full-score-table"></table>
+        </div>
+
+        <button class="btn-secondary" onclick="closeFullScorecardModal()">Chiudi Tabellone</button>
+    </div>
+</div>
+
+<script>
+    const PAR_DATA = {
+        arca: [2, 3, 3, 2, 2, 2, 2, 2, 3, 2, 2, 2, 2, 2, 2, 3, 3, 2],
+        crociata: [2, 3, 3, 3, 3, 2, 2, 2, 2, 3, 2, 3, 2, 3, 2, 2, 2, 2]
+    };
+
+    let gameState = {
+        players: [],
+        course: 'arca',
+        currentHole: 0,
+        activeModalPlayerId: null,
+        activeModalHole: null,
+        wasFullScorecardOpen: false
+    };
+
+    function generateNameInputs() {
+        const num = parseInt(document.getElementById('num-players').value);
+        const container = document.getElementById('names-container');
+        container.innerHTML = '';
+        const defaultNames = ['Paola', 'Marco', 'Luca', 'Sara', 'Andrea', 'Giulia'];
+        for (let i = 0; i < num; i++) {
+            container.innerHTML += `
+                <div style="margin-bottom: 6px;">
+                    <label>Giocatore ${i + 1}</label>
+                    <input type="text" id="player-name-${i}" value="${defaultNames[i]}">
+                </div>
+            `;
+        }
+    }
+    generateNameInputs();
+
+    window.onload = function() {
+        const saved = localStorage.getItem('indiana_active_game');
+        if (saved) {
+            if (confirm("Trovata una partita precedente non completata. Vuoi riprenderla?")) {
+                gameState = JSON.parse(saved);
+                document.getElementById('setup-screen').classList.add('hidden');
+                document.getElementById('game-screen').classList.remove('hidden');
+                updateGameView();
+                return;
+            } else {
+                localStorage.removeItem('indiana_active_game');
+            }
+        }
+    };
+
+    function startNewGame() {
+        const num = parseInt(document.getElementById('num-players').value);
+        let players = [];
+        for (let i = 0; i < num; i++) {
+            const name = document.getElementById(`player-name-${i}`).value.trim() || `Gioc. ${i + 1}`;
+            players.push({
+                id: i,
+                name: name,
+                scores: new Array(18).fill(0)
+            });
+        }
+        gameState = {
+            players: players,
+            course: document.getElementById('course-select').value,
+            currentHole: 0,
+            activeModalPlayerId: null,
+            activeModalHole: null,
+            wasFullScorecardOpen: false
+        };
+
+        saveActiveGame();
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        updateGameView();
+        showTurnModal();
+    }
+
+    function saveActiveGame() {
+        localStorage.setItem('indiana_active_game', JSON.stringify(gameState));
+    }
+
+    function getSortedPlayersForCurrentHole() {
+        return [...gameState.players].sort((a, b) => {
+            let scoreA = a.scores[gameState.currentHole];
+            let scoreB = b.scores[gameState.currentHole];
+
+            // 1. Chi ha 0 tiri (ancora non ha tirato in questa buca) ha la massima priorità
+            if (scoreA === 0 && scoreB !== 0) return -1;
+            if (scoreB === 0 && scoreA !== 0) return 1;
+
+            // 2. Se entrambi hanno già tirato (o entrambi non hanno tirato), ordina per punteggio totale cumulato finora
+            let totalA = a.scores.slice(0, gameState.currentHole).reduce((acc, val) => acc + val, 0) + (scoreA > 0 ? scoreA : 0);
+            let totalB = b.scores.slice(0, gameState.currentHole).reduce((acc, val) => acc + val, 0) + (scoreB > 0 ? scoreB : 0);
+
+            if (totalA !== totalB) return totalA - totalB;
+            return a.id - b.id;
+        });
+    }
+
+    function updateGameView() {
+        const par = PAR_DATA[gameState.course][gameState.currentHole];
+        document.getElementById('header-hole-info').innerText = `Buca ${gameState.currentHole + 1} / 18`;
+        document.getElementById('header-par-info').innerText = `Par: ${par}`;
+
+        let sortedPlayers = getSortedPlayersForCurrentHole();
+
+        let tableHTML = `<tr><th>Ordine</th><th>Giocatore</th><th>Buca ${gameState.currentHole + 1}</th><th>Tot.</th></tr>`;
+        
+        sortedPlayers.forEach((p, index) => {
+            let currentScore = p.scores[gameState.currentHole];
+            let runningTotal = p.scores.reduce((acc, val) => acc + val, 0);
+            let turnText = index === 0 ? "1° (Tocca a lui)" : `${index + 1}°`;
+
+            tableHTML += `
+                <tr>
+                    <td style="font-weight: bold; color: ${index === 0 ? '#0284c7' : '#64748b'}">${turnText}</td>
+                    <td style="font-weight: bold; text-align: left;">${p.name}</td>
+                    <td class="clickable" onclick="openScoreModal(${p.id}, ${gameState.currentHole})">${currentScore === 0 ? '-' : currentScore}</td>
+                    <td style="font-weight: bold;">${runningTotal}</td>
+                </tr>
+            `;
+        });
+        document.getElementById('score-table').innerHTML = tableHTML;
+    }
+
+    function showTurnModal() {
+        let sorted = getSortedPlayersForCurrentHole();
+        const firstPlayer = sorted[0].name;
+        document.getElementById('turn-modal-title').innerText = `Tocca a ${firstPlayer}!`;
+        document.getElementById('turn-modal-desc').innerText = `Inizia la Buca ${gameState.currentHole + 1}. È il turno di chi deve ancora completare la buca.`;
+        document.getElementById('turn-modal').style.display = 'flex';
+    }
+
+    function closeTurnModal() {
+        document.getElementById('turn-modal').style.display = 'none';
+    }
+
+    function openScoreModal(playerId, holeIndex) {
+        if (document.getElementById('full-scorecard-modal').style.display === 'flex') {
+            gameState.wasFullScorecardOpen = true;
+            document.getElementById('full-scorecard-modal').style.display = 'none';
+        } else {
+            gameState.wasFullScorecardOpen = false;
+        }
+
+        gameState.activeModalPlayerId = playerId;
+        gameState.activeModalHole = holeIndex;
+        const player = gameState.players.find(p => p.id === playerId);
+        document.getElementById('modal-player-name').innerText = player.name;
+        document.getElementById('modal-hole-indicator').innerText = `Modifica Buca ${holeIndex + 1}`;
+        document.getElementById('modal-current-strokes').innerText = player.scores[holeIndex];
+        document.getElementById('score-modal').style.display = 'flex';
+    }
+
+    function closeScoreModal() {
+        document.getElementById('score-modal').style.display = 'none';
+        updateGameView();
+        
+        if (gameState.wasFullScorecardOpen) {
+            openFullScorecardModal();
+            gameState.wasFullScorecardOpen = false;
+        }
+    }
+
+    function addStroke(strokesToAdd) {
+        let player = gameState.players.find(p => p.id === gameState.activeModalPlayerId);
+        let holeIdx = gameState.activeModalHole;
+        let current = player.scores[holeIdx];
+
+        if (current >= 6) {
+            alert("Hai già raggiunto il limite di tiri per questa buca (7 d'ufficio).");
+            player.scores[holeIdx] = 7;
+            closeScoreModal();
+            saveActiveGame();
+            return;
+        }
+
+        let newTotal = current + strokesToAdd;
+        if (newTotal > 6) {
+            player.scores[holeIdx] = 7;
+            alert("Limite di 6 tiri superato: assegnato 7 d'ufficio.");
+            closeScoreModal();
+        } else {
+            player.scores[holeIdx] = newTotal;
+            document.getElementById('modal-current-strokes').innerText = player.scores[holeIdx];
+            if (player.scores[holeIdx] >= 7) {
+                closeScoreModal();
+            }
+        }
+        saveActiveGame();
+    }
+
+    function openFullScorecardModal() {
+        let tableHTML = `<tr><th>Giocatore</th>`;
+        for (let i = 1; i <= 18; i++) {
+            tableHTML += `<th>${i}</th>`;
+        }
+        tableHTML += `<th>Tot</th></tr>`;
+
+        gameState.players.forEach(p => {
+            let total = p.scores.reduce((a, b) => a + b, 0);
+            tableHTML += `<tr><td style="font-weight:bold; text-align:left; background:#f8fafc; position:sticky; left:0; z-index:5;">${p.name}</td>`;
+            for (let h = 0; h < 18; h++) {
+                let s = p.scores[h];
+                tableHTML += `<td class="clickable" onclick="openScoreModal(${p.id}, ${h})">${s === 0 ? '-' : s}</td>`;
+            }
+            tableHTML += `<td style="font-weight:bold; background:#e0f2fe;">${total}</td></tr>`;
+        });
+
+        document.getElementById('full-score-table').innerHTML = tableHTML;
+        document.getElementById('full-scorecard-modal').style.display = 'flex';
+    }
+
+    function closeFullScorecardModal() {
+        document.getElementById('full-scorecard-modal').style.display = 'none';
+    }
+
+    function nextHole() {
+        if (gameState.currentHole < 17) {
+            gameState.currentHole++;
+            saveActiveGame();
+            updateGameView();
+            showTurnModal();
+        } else {
+            alert("Hai completato tutte le 18 buche! Clicca su 'Salva Partita in Memoria' per archiviare lo score definitivo.");
+        }
+    }
+
+    function prevHole() {
+        if (gameState.currentHole > 0) {
+            gameState.currentHole--;
+            saveActiveGame();
+            updateGameView();
+        }
+    }
+
+    function saveGameToHistory() {
+        let history = JSON.parse(localStorage.getItem('indiana_history') || '[]');
+        const dateStr = new Date().toLocaleDateString('it-IT') + ' ' + new Date().toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
+        
+        let gameRecord = {
+            date: dateStr,
+            course: gameState.course === 'arca' ? 'Arca Perduta (Par 41)' : 'Ultima Crociata (Par 43)',
+            players: JSON.parse(JSON.stringify(gameState.players))
+        };
+
+        history.unshift(gameRecord);
+        localStorage.setItem('indiana_history', JSON.stringify(history));
+        localStorage.removeItem('indiana_active_game');
+        alert("Partita salvata con successo nello storico!");
+        backToSetup();
+    }
+
+    function confirmExit() {
+        if (confirm("Vuoi davvero uscire? La partita in corso rimarrà comunque salvata sul telefono.")) {
+            backToSetup();
+        }
+    }
+
+    function backToSetup() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('history-screen').classList.add('hidden');
+        document.getElementById('setup-screen').classList.remove('hidden');
+    }
+
+    function showHistoryScreen() {
+        const historyList = document.getElementById('history-list');
+        let history = JSON.parse(localStorage.getItem('indiana_history') || '[]');
+        
+        if (history.length === 0) {
+            historyList.innerHTML = '<p style="text-align:center; color: #64748b; margin-top:20px;">Nessuna partita salvata nello storico.</p>';
+        } else {
+            let html = '';
+            history.forEach(game => {
+                let tableHTML = `<tr><th>Giocatore</th>`;
+                for (let i = 1; i <= 18; i++) {
+                    tableHTML += `<th>${i}</th>`;
+                }
+                tableHTML += `<th>Tot</th></tr>`;
+
+                game.players.forEach(p => {
+                    let total = p.scores.reduce((a, b) => a + b, 0);
+                    tableHTML += `<tr><td style="font-weight:bold; text-align:left; background:#f8fafc; position:sticky; left:0; z-index:5;">${p.name}</td>`;
+                    for (let h = 0; h < 18; h++) {
+                        let s = p.scores[h];
+                        tableHTML += `<td>${s === 0 ? '-' : s}</td>`;
+                    }
+                    tableHTML += `<td style="font-weight:bold; background:#e0f2fe;">${total}</td></tr>`;
+                });
+
+                html += `
+                    <div class="history-card-item">
+                        <div style="margin-bottom: 6px;">
+                            <strong>${game.course}</strong> — <span style="color: #64748b;">${game.date}</span>
+                        </div>
+                        <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
+                            <table>${tableHTML}</table>
+                        </div>
+                    </div>
+                `;
+            });
+            historyList.innerHTML = html;
+        }
+
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('history-screen').classList.remove('hidden');
+    }
+</script>
+
+</body>
+</html>
