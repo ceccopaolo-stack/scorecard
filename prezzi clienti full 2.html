@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Indiana Golf Riccione - Tickets Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #37474f;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .card-preventivo {
+            background-color: #263238;
+            color: white;
+            border: 4px solid #ffb74d;
+            border-radius: 15px;
+            padding: 20px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #ffb74d;
+            font-size: 2rem;
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .subh1 {
+            color: #b0bec5;
+            font-size: 1.15rem;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .riga-input {
+            margin-bottom: 18px;
+            background: rgba(255,255,255,0.06);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #546e7a;
+        }
+
+        .intestazione-riga {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .etichetta-categoria {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .sotto-titolo {
+            font-size: 0.95rem;
+            color: #ffb74d;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .prezzo-etichetta {
+            font-size: 1rem;
+            color: #ffb74d;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .prezzo-gratis {
+            color: #a5d6a7;
+        }
+
+        .sotto-testo {
+            font-size: 0.9rem;
+            color: #cfd8dc;
+            font-weight: normal;
+            display: block;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        /* Stile Contatore +/- */
+        .contatore-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 8px;
+            border: 2px solid #ffb74d;
+            overflow: hidden;
+        }
+
+        .btn-cnt {
+            background-color: #ffb74d;
+            color: #263238;
+            border: none;
+            font-size: 1.8rem;
+            font-weight: 900;
+            width: 60px;
+            height: 54px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            user-select: none;
+        }
+
+        .btn-cnt:active {
+            background-color: #ffa000;
+        }
+
+        .valore-cnt {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #333;
+            text-align: center;
+            flex: 1;
+        }
+
+        /* Pulsanti principali */
+        .btn-azione {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            margin-top: 15px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+            text-transform: uppercase;
+        }
+
+        .btn-calcola { background-color: #2e7d32; color: white; }
+        .btn-calcola:hover { background-color: #388e3c; }
+
+        /* Container bottoni affiancati nella seconda pagina */
+        .bottoni-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn-modifica { background-color: #455a64; color: white; padding: 14px; font-size: 1.05rem; flex: 1; margin-top: 0; }
+        .btn-modifica:hover { background-color: #546e7a; }
+
+        .btn-prenota { background-color: #ff8f00; color: white; padding: 14px; font-size: 1.05rem; flex: 1; margin-top: 0; }
+        .btn-prenota:hover { background-color: #ffa000; }
+
+        /* Sezioni delle pagine */
+        .schermata {
+            display: none;
+        }
+        .schermata.attiva {
+            display: block;
+        }
+
+        /* Box Risultati */
+        .totale-box {
+            background-color: #2e7d32;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .percorso-titolo { font-size: 1rem; color: #ffb74d; text-transform: uppercase; font-weight: 900; margin-bottom: 8px; }
+        
+        /* Totale Ingressi Ingrandito in evidenza (uguale al numero e bianco) */
+        .client-people-box { 
+            font-size: 1.8rem; 
+            color: #ffffff; 
+            font-weight: 900; 
+            margin-bottom: 12px; 
+            text-transform: uppercase; 
+            line-height: 1.1;
+        }
+
+        .totale-titolo { font-size: 1.05rem; color: #a5d6a7; text-transform: uppercase; font-weight: bold; margin-top: 12px; }
+        .totale-cifra { font-size: 3rem; font-weight: 900; color: #fff; margin-top: 2px; line-height: 1; }
+
+        /* Nota aggiuntiva sotto al prezzo del doppio percorso */
+        .nota-doppio {
+            font-size: 0.95rem;
+            color: #e8f5e9;
+            margin-top: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Box Promo Mercoledì */
+        .promo-mercoledi-container {
+            background-color: #1b5e20;
+            border: 3px solid #ffb74d;
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .promo-titolo {
+            font-size: 1.25rem;
+            color: #ffb74d;
+            text-transform: uppercase;
+            font-weight: 900;
+            margin-bottom: 8px;
+        }
+
+        .promo-evidenza-grande {
+            font-size: 1.35rem;
+            color: #ffeb3b;
+            text-transform: uppercase;
+            font-weight: 900;
+            display: block;
+            margin: 4px 0;
+            line-height: 1.2;
+        }
+
+        .promo-testo {
+            font-size: 1rem;
+            color: #e8f5e9;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .promo-cifra {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fff;
+            background: rgba(0,0,0,0.25);
+            border: 2px dashed #ffb74d;
+            border-radius: 30px;
+            padding: 5px 20px;
+            display: inline-block;
+            margin: 5px 0;
+        }
+
+        .risparmio-evidenza {
+            color: #ffeb3b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Box Bianco Alternativo */
+        .box-bianco-alt {
+            background-color: #ffffff;
+            color: #263238;
+            border-radius: 10px;
+            padding: 14px 15px;
+            text-align: center;
+            margin-bottom: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: background-color 0.2s;
+        }
+
+        .box-bianco-alt:hover {
+            background-color: #eceff1;
+        }
+
+        .box-bianco-alt-testo {
+            font-size: 1.05rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            color: #d84315;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card-preventivo">
+        <h1>Indiana Golf</h1>
+        <div class="subh1">Tickets Calculator</div>
+
+        <!-- SCHERMATA 1: INSERIMENTO DATI CON CONTATORI -->
+        <div id="pagina-input" class="schermata attiva">
+            
+            <!-- 1. Adulti o Teenagers -->
+            <div class="riga-input">
+                <div class="intestazione-riga">
+                    <span class="etichetta-categoria">Adulti o Teenagers</span>
+                    <span class="prezzo-etichetta">€ 14,00 cad.</span>
+                </div>
+                <span class="sotto-titolo">(13 anni in su)</span>
+                <div class="contatore-wrapper">
+                    <button class="btn-cnt" onclick="modificaValore('adulti', -1)">-</button>
+                    <span id="val-adulti" class="valore-cnt">2</span>
+                    <button class="btn-cnt" onclick="modificaValore('adulti', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- 2. Bambini 5-12 anni -->
+            <div class="riga-input">
+                <div class="intestazione-riga">
+                    <span class="etichetta-categoria">Bambini 5-12 anni</span>
+                    <span class="prezzo-etichetta">€ 8,00 cad.</span>
+                </div>
+                <div class="contatore-wrapper">
+                    <button class="btn-cnt" onclick="modificaValore('bambini', -1)">-</button>
+                    <span id="val-bambini" class="valore-cnt">2</span>
+                    <button class="btn-cnt" onclick="modificaValore('bambini', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- 3. Bambini 0-4 anni -->
+            <div class="riga-input">
+                <div class="intestazione-riga">
+                    <span class="etichetta-categoria">Bambini 0-4 anni</span>
+                    <span class="prezzo-etichetta prezzo-gratis">Gratis</span>
+                </div>
+                <div class="contatore-wrapper">
+                    <button class="btn-cnt" onclick="modificaValore('gratis', -1)">-</button>
+                    <span id="val-gratis" class="valore-cnt">0</span>
+                    <button class="btn-cnt" onclick="modificaValore('gratis', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- 4. Accompagnatori -->
+            <div class="riga-input">
+                <div class="intestazione-riga">
+                    <span class="etichetta-categoria" style="font-size: 1.05rem;">Accompagnatori</span>
+                    <span class="prezzo-etichetta">€ 14,00 cad.</span>
+                </div>
+                <span class="sotto-testo">C'è qualche persona con voi che vuole entrare nel percorso senza giocare? (Chi entra paga il biglietto).</span>
+                <div class="contatore-wrapper">
+                    <button class="btn-cnt" onclick="modificaValore('accompagnatori', -1)">-</button>
+                    <span id="val-accompagnatori" class="valore-cnt">0</span>
+                    <button class="btn-cnt" onclick="modificaValore('accompagnatori', 1)">+</button>
+                </div>
+            </div>
+
+            <button class="btn-azione btn-calcola" onclick="mostraRisultati()">Calcola Prezzo</button>
+        </div>
+
+        <!-- SCHERMATA 2: RISULTATI 1 PERCORSO -->
+        <div id="pagina-risultati" class="schermata">
+            
+            <!-- Costo Normale -->
+            <div class="totale-box">
+                <div class="percorso-titolo">1 percorso 18 buche</div>
+                <div class="client-people-box">Totale Ingressi: <span id="lbl-tot-persone">4</span></div>
+                <div class="totale-titolo">Costo Giornata Normale</div>
+                <div class="totale-cifra" id="lbl-totale-standard">€ 44,00</div>
+            </div>
+
+            <!-- Box Bianco Doppio Percorso -->
+            <div class="box-bianco-alt" onclick="mostraDoppioPercorso()">
+                <div class="box-bianco-alt-testo">Voglio fare tutti e due i percorsi (Calcola doppio percorso)</div>
+            </div>
+
+            <!-- Promo Mercoledì -->
+            <div class="promo-mercoledi-container" id="box-promo-mercoledi">
+                <div class="promo-titolo">Vuoi risparmiare?</div>
+                <div class="promo-testo">
+                    Approfitta della promozione:<br>
+                    <span class="promo-evidenza-grande">MERCOLEDÌ</span>
+                    <span class="promo-evidenza-grande">HAPPY FAMILY!</span>
+                    Ogni adulto pagante sconta fino a 3 bambini a soli <strong>€ 4,00</strong> anziché € 8,00 sul primo percorso.
+                </div>
+                <div class="totale-titolo" style="color: #a5d6a7;">Mercoledì paghi:</div>
+                <div class="promo-cifra" id="lbl-totale-mercoledi">€ 0,00</div>
+                <div style="font-size: 1rem; margin-top: 5px;">
+                    Risparmi ben <span class="risparmio-evidenza" id="lbl-risparmio">€ 0,00</span>!
+                </div>
+            </div>
+
+            <!-- Tasti di navigazione finale affiancati -->
+            <div class="bottoni-container">
+                <a href="https://indianagolfriccioneprenotazioni.net/home" id="link-prenota" class="btn-azione btn-prenota" target="_blank">Prenota</a>
+                <button class="btn-azione btn-modifica" onclick="tornaModifica()">Indietro / Modifica</button>
+            </div>
+        </div>
+
+        <!-- SCHERMATA 3: RISULTATI DOPPIO PERCORSO -->
+        <div id="pagina-doppio" class="schermata">
+            
+            <div class="totale-box">
+                <div class="percorso-titolo">Doppio Percorso 36 Buche</div>
+                <div class="client-people-box">Totale Ingressi: <span id="lbl-tot-persone-doppio">4</span></div>
+                <div class="totale-titolo">Costo Doppio Percorso</div>
+                <div class="totale-cifra" id="lbl-totale-doppio">€ 0,00</div>
+                <div class="nota-doppio">Il secondo percorso lo puoi fare quando vuoi</div>
+            </div>
+
+            <!-- Box Bianco Torna a 1 Percorso -->
+            <div class="box-bianco-alt" onclick="tornaAIrisultatiSingolo()">
+                <div class="box-bianco-alt-testo">Voglio fare un solo percorso di 18 buche</div>
+            </div>
+
+            <div class="promo-mercoledi-container" id="box-promo-doppio-mercoledi">
+                <div class="promo-titolo">Vuoi risparmiare?</div>
+                <div class="promo-testo">
+                    Approfitta della promozione:<br>
+                    <span class="promo-evidenza-grande">MERCOLEDÌ</span>
+                    <span class="promo-evidenza-grande">HAPPY FAMILY!</span>
+                    Ogni adulto pagante sconta fino a 3 bambini a prezzo ridotto sul primo percorso.
+                </div>
+                <div class="totale-titolo" style="color: #a5d6a7;">Mercoledì paghi:</div>
+                <div class="promo-cifra" id="lbl-totale-doppio-mercoledi">€ 0,00</div>
+                <div style="font-size: 1rem; margin-top: 5px;">
+                    Risparmi ben <span class="risparmio-evidenza" id="lbl-risparmio-doppio">€ 0,00</span>!
+                </div>
+            </div>
+
+            <!-- Tasti di navigazione finale affiancati -->
+            <div class="bottoni-container">
+                <a href="https://indianagolfriccioneprenotazioni.net/home" id="link-prenota-doppio" class="btn-azione btn-prenota" target="_blank">Prenota</a>
+                <button class="btn-azione btn-modifica" onclick="tornaModifica()">Indietro / Modifica</button>
+            </div>
+        </div>
+
+    </div>
+
+<script>
+    let datiPersone = {
+        adulti: 2,
+        bambini: 2,
+        gratis: 0,
+        accompagnatori: 0
+    };
+
+    function modificaValore(tipo, variazione) {
+        datiPersone[tipo] += variazione;
+        if (datiPersone[tipo] < 0) {
+            datiPersone[tipo] = 0;
+        }
+        document.getElementById(`val-${tipo}`).innerText = datiPersone[tipo];
+    }
+
+    function mostraRisultati() {
+        const adulti = datiPersone.adulti;
+        const bambini = datiPersone.bambini;
+        const gratis = datiPersone.gratis;
+        const accompagnatori = datiPersone.accompagnatori;
+
+        const totalePersone = adulti + bambini + gratis + accompagnatori;
+        
+        const totaleStandard = (adulti * 14) + (accompagnatori * 14) + (bambini * 8);
+        const totaleDoppioStandard = (adulti * 20) + (accompagnatori * 20) + (bambini * 13);
+
+        document.getElementById('lbl-tot-persone').innerText = totalePersone;
+        document.getElementById('lbl-totale-standard').innerText = `€ ${totaleStandard.toFixed(2).replace('.', ',')}`;
+
+        document.getElementById('lbl-tot-persone-doppio').innerText = totalePersone;
+        document.getElementById('lbl-totale-doppio').innerText = `€ ${totaleDoppioStandard.toFixed(2).replace('.', ',')}`;
+
+        const boxPromo = document.getElementById('box-promo-mercoledi');
+        const boxPromoDoppio = document.getElementById('box-promo-doppio-mercoledi');
+
+        if (bambini > 0) {
+            boxPromo.style.display = 'block';
+            boxPromoDoppio.style.display = 'block';
+
+            const adultiTotaliPaganti = adulti + accompagnatori;
+            let slotScontatiDisponibili = adultiTotaliPaganti * 3;
+            let bambiniScontati = Math.min(bambini, slotScontatiDisponibili);
+            let bambiniPrezzoPieno = bambini - bambiniScontati;
+            
+            let totaleMercoledi = (adultiTotaliPaganti * 14) + (bambiniScontati * 4) + (bambiniPrezzoPieno * 8);
+            let risparmio = totaleStandard - totaleMercoledi;
+
+            document.getElementById('lbl-totale-mercoledi').innerText = `€ ${totaleMercoledi.toFixed(2).replace('.', ',')}`;
+            document.getElementById('lbl-risparmio').innerText = `€ ${risparmio.toFixed(2).replace('.', ',')}`;
+
+            let bambiniScontatiDoppio = Math.min(bambini, slotScontatiDisponibili);
+            let bambiniPrezzoPienoDoppio = bambini - bambiniScontatiDoppio;
+            let totaleDoppioMercoledi = (adultiTotaliPaganti * 20) + (bambiniScontatiDoppio * 9) + (bambiniPrezzoPienoDoppio * 13);
+            let risparmioDoppio = totaleDoppioStandard - totaleDoppioMercoledi;
+
+            document.getElementById('lbl-totale-doppio-mercoledi').innerText = `€ ${totaleDoppioMercoledi.toFixed(2).replace('.', ',')}`;
+            document.getElementById('lbl-risparmio-doppio').innerText = `€ ${risparmioDoppio.toFixed(2).replace('.', ',')}`;
+        } else {
+            boxPromo.style.display = 'none';
+            boxPromoDoppio.style.display = 'none';
+        }
+
+        document.getElementById('pagina-input').classList.remove('attiva');
+        document.getElementById('pagina-doppio').classList.remove('attiva');
+        document.getElementById('pagina-risultati').classList.add('attiva');
+    }
+
+    function mostraDoppioPercorso() {
+        document.getElementById('pagina-risultati').classList.remove('attiva');
+        document.getElementById('pagina-doppio').classList.add('attiva');
+    }
+
+    function tornaAIrisultatiSingolo() {
+        document.getElementById('pagina-doppio').classList.remove('attiva');
+        document.getElementById('pagina-risultati').classList.add('attiva');
+    }
+
+    function tornaModifica() {
+        document.getElementById('pagina-risultati').classList.remove('attiva');
+        document.getElementById('pagina-doppio').classList.remove('attiva');
+        document.getElementById('pagina-input').classList.add('attiva');
+    }
+</script>
+
+</body>
+</html>
